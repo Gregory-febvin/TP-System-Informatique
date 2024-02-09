@@ -82,7 +82,7 @@ class Dispatcher{
 
 		frame.add(containerPanel, BorderLayout.NORTH);
 		frame.add(buttonPanel, BorderLayout.SOUTH);
-		frame.add(scrollPane, BorderLayout.EAST);
+		frame.add(scrollPane, BorderLayout.CENTER);
 		frame.setVisible(true);
 	}
 
