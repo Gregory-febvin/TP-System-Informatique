@@ -62,9 +62,7 @@ class Dispatcher{
 				Processus[] processus = ecran.tableProcess(lireFile);
 
 				processusList = new ArrayList<>();
-				for (Processus p : processus) {
-					processusList.add(p);
-				}
+				processusList.addAll(Arrays.asList(processus));
 
 				String selectedAlgo = (String) algoComboBox.getSelectedItem();
 				processSelectedAlgorithm(selectedAlgo, processus, frame);
@@ -179,7 +177,7 @@ class Dispatcher{
 	private static void SJF(ArrayList processusList, Processus[] processus) {
 		start = 0;
 		time = 0;
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivateSJF(processus, start);
@@ -221,7 +219,7 @@ class Dispatcher{
 
 		List<Processus> processReadyToActivate = new ArrayList<>();
 
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivateRobinPrio(processus, processReadyToActivate, start);
@@ -282,7 +280,7 @@ class Dispatcher{
 
 		List<Processus> processReadyToActivate = new ArrayList<>();
 
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivateRobin(processus, processReadyToActivate, start);
@@ -333,7 +331,7 @@ class Dispatcher{
 	private static void FIFOPrioPremption(ArrayList processusList, Processus[] processus) {
 		start = 0;
 		time = 0;
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivatePrio(processus, start);
@@ -393,7 +391,7 @@ class Dispatcher{
 
 		List<Processus> processReadyToActivate = new ArrayList<>();
 
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivateRobin(processus, processReadyToActivate, start);
@@ -430,7 +428,7 @@ class Dispatcher{
 
 		List<Processus> processReadyToActivate = new ArrayList<>();
 
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivateRobinPrio(processus, processReadyToActivate, start);
@@ -472,7 +470,7 @@ class Dispatcher{
 	public static void FIFObasic(ArrayList processusList, Processus[] processus){
 		start = 0;
 		time = 0;
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivate(processus, start);
@@ -503,7 +501,7 @@ class Dispatcher{
 	private static void FIFOPrio(ArrayList processusList, Processus[] processus) {
 		start = 0;
 		time = 0;
-		while (!allProcessesFinished(processus)){
+		while (allProcessesFinished(processus)){
 
 			setProcessToArrived(processus);
 			Processus processToActivate = findProcessToActivatePrio(processus, start);
@@ -541,16 +539,16 @@ class Dispatcher{
 	}
 
 	private static void unBlockProcess(Processus[] processus) {
-		for (int i = 0; i < processus.length; i++){
-			if(processus[i].isArrived() & !processus[i].isFinished() & processus[i].blocked & processus[i].getBlockedTimeEnd() <= start ){
-				processus[i].setBlocked(false);
-			}
-		}
+        for (Processus value : processus) {
+            if (value.isArrived() & !value.isFinished() & value.blocked & value.getBlockedTimeEnd() <= start) {
+                value.setBlocked(false);
+            }
+        }
 	}
 
 	private static void setProcessToArrived(Processus[] processus) {
 		for(int i = 0; i < processus.length; i++){
-			if(processus[i].isArrived() != true & processus[i].isFinished() != true & processus[i].getArrive_time() <= start ){
+			if(!processus[i].isArrived() & !processus[i].isFinished() & processus[i].getArrive_time() <= start ){
 				processus[i].setArrived(true);
 			}
 		}
@@ -560,11 +558,11 @@ class Dispatcher{
 		Processus[] processReadyToActivate = new Processus[processus.length];
 
 		int count = 0;
-		for(int i = 0; i < processus.length; i++){
-			if(processus[i].getArrive_time() <= start & processus[i].isBlocked() != true & processus[i].isArrived() == true & processus[i].isFinished() != true){
-				processReadyToActivate[count++] = processus[i];
-			}
-		}
+        for (Processus value : processus) {
+            if (value.getArrive_time() <= start & !value.isBlocked() & value.isArrived() & !value.isFinished()) {
+                processReadyToActivate[count++] = value;
+            }
+        }
 
 		if (count == 0) {
 			return null; // Return null if no process is arrived
@@ -584,11 +582,11 @@ class Dispatcher{
 		Processus[] processReadyToActivate = new Processus[processus.length];
 
 		int count = 0;
-		for(int i = 0; i < processus.length; i++){
-			if(processus[i].getArrive_time() <= start & !processus[i].isBlocked() & processus[i].isArrived() & !processus[i].isFinished()){
-				processReadyToActivate[count++] = processus[i];
-			}
-		}
+        for (Processus value : processus) {
+            if (value.getArrive_time() <= start & !value.isBlocked() & value.isArrived() & !value.isFinished()) {
+                processReadyToActivate[count++] = value;
+            }
+        }
 
 		if (count == 0) {
 			return null; // Return null if no process is arrived
@@ -649,11 +647,11 @@ class Dispatcher{
 		Processus[] processReadyToActivate = new Processus[processus.length];
 
 		int count = 0;
-		for(int i = 0; i < processus.length; i++){
-			if(processus[i].getArrive_time() <= start & !processus[i].isBlocked() & processus[i].isArrived() & !processus[i].isFinished()){
-				processReadyToActivate[count++] = processus[i];
-			}
-		}
+        for (Processus value : processus) {
+            if (value.getArrive_time() <= start & !value.isBlocked() & value.isArrived() & !value.isFinished()) {
+                processReadyToActivate[count++] = value;
+            }
+        }
 
 		if (count == 0) {
 			return null; // Return null if no process is arrived
@@ -686,8 +684,7 @@ class Dispatcher{
 
 		int columnWidth = 10;
 		for (Object obj : processusList) {
-			if (obj instanceof Processus) {
-				Processus processus = (Processus) obj;
+			if (obj instanceof Processus processus) {
 				String status = processus.getStatus(start);
 				System.out.printf("%-" + columnWidth + "s", status);
 			}
@@ -709,10 +706,10 @@ class Dispatcher{
 	static boolean allProcessesFinished(Processus[] processes) {
 		for (Processus process : processes) {
 			if (!process.finished) {
-				return false;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 }
