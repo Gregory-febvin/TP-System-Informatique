@@ -72,6 +72,7 @@ class Dispatcher{
 
 		resultTextArea = new JTextArea();
 		resultTextArea.setEditable(false);
+
 		JScrollPane scrollPane = new JScrollPane(resultTextArea);
 
 		Panel containerPanel = new Panel();
@@ -160,6 +161,7 @@ class Dispatcher{
 
 		resultTextArea.append("--------" + selectedAlgo + "--------\n");
 		resultTextArea.append(" 0\t\tF1\t\tF2\t\tF3\t\tF4\n");
+
 
 		// Loop du dataTableau pour remplir le tableaux
 		for (List<String> row : dataTableau) {
