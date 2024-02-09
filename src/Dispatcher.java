@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JTextArea;
 
 class Dispatcher{
 
@@ -16,7 +17,7 @@ class Dispatcher{
 	static int second = 0, start = 0, time = 0;
 	static boolean start_at_zero = true;
 
-	private static ArrayList<ArrayList<Float>> dataTableau;
+	private static ArrayList<ArrayList<String>> dataTableau;
 	public static void main(String[] args) {
 		ecran = new IOCommandes();
 
@@ -66,7 +67,7 @@ class Dispatcher{
 				}
 
 				String selectedAlgo = (String) algoComboBox.getSelectedItem();
-				processSelectedAlgorithm(selectedAlgo, processus);
+				processSelectedAlgorithm(selectedAlgo, processus, frame);
 			}
 		});
 		buttonPanel.add(startButton);
@@ -75,14 +76,19 @@ class Dispatcher{
 		resultTextArea.setEditable(false);
 		JScrollPane scrollPane = new JScrollPane(resultTextArea);
 
-		frame.add(filePanel, BorderLayout.NORTH);
-		frame.add(algoPanel, BorderLayout.CENTER);
+		Panel containerPanel = new Panel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(filePanel);
+		containerPanel.add(algoPanel);
+
+
+		frame.add(containerPanel, BorderLayout.NORTH);
 		frame.add(buttonPanel, BorderLayout.SOUTH);
 		frame.add(scrollPane, BorderLayout.EAST);
 		frame.setVisible(true);
 	}
 
-	private static void processSelectedAlgorithm(String selectedAlgo, Processus[] processus) {
+	private static void processSelectedAlgorithm(String selectedAlgo, Processus[] processus, Component frame) {
 
 		dataTableau = new ArrayList<>();
 		for (int i = 0; i < processusList.size() + 1; i++) {
@@ -147,31 +153,28 @@ class Dispatcher{
 
 				break;
 		}
-		displayResults(selectedAlgo);
+		displayResults(selectedAlgo, frame);
 	}
 
-	private static void displayResults(String selectedAlgo) {
-		// Vide la zone / coup de brosse
+	private static void displayResults(String selectedAlgo, Component frame) {
+		// Vide le tableau
 		resultTextArea.setText("");
 
 		resultTextArea.append("--------" + selectedAlgo + "--------\n");
 		resultTextArea.append(" 0\t\tF1\t\tF2\t\tF3\t\tF4\n");
 
-		for (int i = 0; i < dataTableau.get(0).size(); i++) {
-			resultTextArea.append(dataTableau.get(0).get(i) + "\t\t");
-			for (int j = 1; j < dataTableau.size(); j++) {
-				ArrayList<Float> list = dataTableau.get(j);
-				if (i < list.size()) {
-					double value = list.get(i);
-					String displayValue = value == 0 ? "-" : "A(" + value + ")";
-					resultTextArea.append(displayValue + "\t\t");
-				} else {
-					resultTextArea.append("\t\t");
-				}
+		// Loop du dataTableau pour remplir le tableaux
+		for (List<String> row : dataTableau) {
+			for (String status : row) {
+				resultTextArea.append(status + "\t\t");
 			}
 			resultTextArea.append("\n");
 		}
+
+		frame.revalidate();
+		frame.repaint();
 	}
+
 
 	private static void SJF(ArrayList processusList, Processus[] processus) {
 		start = 0;
@@ -691,13 +694,16 @@ class Dispatcher{
 		}
 		System.out.println();
 
-		dataTableau.get(0).add((float) start);
-		for (int i = 0; i < processusList.size(); i++) {
-			Processus p = (Processus) processusList.get(i);
-			if (!p.isFinished()) {
-				dataTableau.get(i + 1).add(p.getTotal_time());
+		ArrayList<String> row = new ArrayList<>();
+		row.add(Integer.toString(start));
+		for (Object obj : processusList) {
+			if (obj instanceof Processus) {
+				Processus p = (Processus) obj;
+				String status = p.getStatus(start);
+				row.add(status);
 			}
 		}
+		dataTableau.add(row);
 	}
 
 	static boolean allProcessesFinished(Processus[] processes) {
