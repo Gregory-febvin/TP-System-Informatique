@@ -1,140 +1,175 @@
+import java.awt.*;
 import java.io.File;
 import java.util.*;
-
-import static java.lang.System.exit;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 class Dispatcher{
+
+	private static IOCommandes ecran;
+	private static ArrayList<Processus> processusList;
+	private static JTextArea resultTextArea;
 
 	static int second = 0, start = 0, time = 0;
 	static boolean start_at_zero = true;
 
-	public static void main(String[] args){
-		IOCommandes ecran = new IOCommandes();
+	private static ArrayList<ArrayList<Float>> dataTableau;
+	public static void main(String[] args) {
+		ecran = new IOCommandes();
 
-		while (true) {
-			/* Fichier */
-			System.out.println("Veuillez choisir un fichier a ordonnancer: ");
-			System.out.println("processus_1.txt\t\tprocessus_2.txt\t\tprocessus_TD.txt");
+		// Fenetre
+		JFrame frame = new JFrame("Processus Ordonnancement");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(1200, 800);
+		frame.setLayout(new BorderLayout());
 
-			String fileName = ecran.lireEcran();
-			String filePath = "files/" + fileName;
-			File file = new File(filePath);
+		// Liste fichiers
+		JPanel filePanel = new JPanel();
+		JLabel fileLabel = new JLabel("Choisir un fichier à ordonnancer: ");
+		String[] fileOptions = {"processus_1.txt", "processus_2.txt", "processus_TD.txt"};
+		JComboBox<String> fileComboBox = new JComboBox<>(fileOptions);
+		filePanel.add(fileLabel);
+		filePanel.add(fileComboBox);
 
-			if (!file.exists()) {
-				System.out.println("Le fichier spécifié n'existe pas.");
-				continue;
+		// Liste des politiques
+		JPanel algoPanel = new JPanel();
+		JLabel algoLabel = new JLabel("Choisir une politique d'ordonnancement: ");
+		String[] algoOptions = {"FIFO", "FIFO Priorité", "Round Robin", "Round Robin Priorité", "FiFo Priorité avec préemption", "Round Robin préemption", "Round Robin Priorité préemption", "SJF"};
+		JComboBox<String> algoComboBox = new JComboBox<>(algoOptions);
+		algoPanel.add(algoLabel);
+		algoPanel.add(algoComboBox);
+
+		// Bouton start
+		JButton startButton = new JButton("Commencer");
+		JPanel buttonPanel = new JPanel();
+
+		startButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String fileName = (String) fileComboBox.getSelectedItem();
+				String filePath = "files/" + fileName;
+				File file = new File(filePath);
+				if (!file.exists()) {
+					JOptionPane.showMessageDialog(frame, "Le fichier spécifié n'existe pas.");
+					return;
+				}
+
+				String lireFile = ecran.lireFile(file);
+				Processus[] processus = ecran.tableProcess(lireFile);
+
+				processusList = new ArrayList<>();
+				for (Processus p : processus) {
+					processusList.add(p);
+				}
+
+				String selectedAlgo = (String) algoComboBox.getSelectedItem();
+				processSelectedAlgorithm(selectedAlgo, processus);
 			}
+		});
+		buttonPanel.add(startButton);
 
-			String lireFile = ecran.lireFile(file);
-			Processus[] processus = ecran.tableProcess(lireFile);
+		resultTextArea = new JTextArea();
+		resultTextArea.setEditable(false);
+		JScrollPane scrollPane = new JScrollPane(resultTextArea);
 
-			/* Ordonnecement*/
-			System.out.println("Veuillez choisir une politique d'ordonnecement: ");
-			System.out.println("1: FIFO (First In First Out)");
-			System.out.println("2: FIFO Priorité");
-			System.out.println("3: Round Robin");
-			System.out.println("4: Round Robin Prio");
-			System.out.println("5: FiFo Priorité avec préemption");
-			System.out.println("6: Round Robin préemption");
-			System.out.println("7: Round Robin Priorité préemption");
-			System.out.println("0: Quitter");
+		frame.add(filePanel, BorderLayout.NORTH);
+		frame.add(algoPanel, BorderLayout.CENTER);
+		frame.add(buttonPanel, BorderLayout.SOUTH);
+		frame.add(scrollPane, BorderLayout.EAST);
+		frame.setVisible(true);
+	}
 
-			ArrayList processus_list = new ArrayList<>();
+	private static void processSelectedAlgorithm(String selectedAlgo, Processus[] processus) {
 
-			switch (ecran.lireEcran()) {
-				case "1":
-					System.out.println("--------FIFO policy--------");
-					/* FIFO (sans I/O, non-préantif et sans priorité) */
+		dataTableau = new ArrayList<>();
+		for (int i = 0; i < processusList.size() + 1; i++) {
+			dataTableau.add(new ArrayList<>());
+		}
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+		switch (selectedAlgo) {
+			case "FIFO":
+				System.out.println("--------FIFO policy--------");
+				/* FIFO (sans I/O, non-préantif et sans priorité) */
 
-					FIFObasic(processus_list, processus);
+				FIFObasic(processusList, processus);
 
-					break;
-				case "2":
-					System.out.println("--------FIFO Priorité--------");
-					/* FIFO (sans I/O, non-préantif et avec priorité) */
+				break;
+			case "FIFO Priorité":
+				System.out.println("--------FIFO Priorité--------");
+				/* FIFO (sans I/O, non-préantif et avec priorité) */
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+				FIFOPrio(processusList, processus);
 
-					FIFOPrio(processus_list, processus);
+				break;
+			case "Round Robin":
+				System.out.println("--------Round Robin--------");
+				System.out.println("WIP");
 
-					break;
-				case "3":
-					System.out.println("--------Round Robin--------");
-					System.out.println("WIP");
+				Robin(processusList, processus);
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+				break;
+			case "Round Robin Priorité":
+				System.out.println("--------Round Robin Priorité--------");
+				System.out.println("WIP");
 
-					Robin(processus_list, processus);
+				RobinPrio(processusList, processus);
 
-					break;
-				case "4":
-					System.out.println("--------Round Robin Priorité--------");
-					System.out.println("WIP");
+				break;
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+			case "FiFo Priorité avec préemption":
+				System.out.println("--------FIFO Priorité Préemption--------");
 
-					RobinPrio(processus_list, processus);
+				FIFOPrioPremption(processusList, processus);
 
-					break;
+				break;
 
-				case "5":
-					System.out.println("--------FIFO Priorité Préemption--------");
+			case "Round Robin préemption":
+				System.out.println("--------Rand Robin Préemption--------");
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+				RandRobinPreemption(processusList, processus);
 
-					FIFOPrioPremption(processus_list, processus);
+				break;
 
-					break;
+			case "Round Robin Priorité préemption":
+				System.out.println("--------Rand Robin Priorité Préemption--------");
 
-				case "6":
-					System.out.println("--------Rand Robin Préemption--------");
+				RandRobinPrioPreemption(processusList, processus);
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+				break;
 
-					RandRobinPreemption(processus_list, processus);
+			case "SJF":
+				System.out.println("--------SJF--------");
 
-					break;
+				SJF(processusList, processus);
 
-				case "7":
-					System.out.println("--------Rand Robin Priorité Préemption--------");
+				break;
+		}
+		displayResults(selectedAlgo);
+	}
 
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
+	private static void displayResults(String selectedAlgo) {
+		// Vide la zone / coup de brosse
+		resultTextArea.setText("");
 
-					RandRobinPrioPreemption(processus_list, processus);
+		resultTextArea.append("--------" + selectedAlgo + "--------\n");
+		resultTextArea.append(" 0\t\tF1\t\tF2\t\tF3\t\tF4\n");
 
-					break;
-
-				case "8":
-					System.out.println("--------SJF--------");
-
-					for (int i = 0; i < processus.length; i++) {
-						processus_list.add(processus[i]);
-					}
-
-					SJF(processus_list, processus);
-
-					break;
-
-				case "0":
-					exit(0);
-					break;
+		for (int i = 0; i < dataTableau.get(0).size(); i++) {
+			resultTextArea.append(dataTableau.get(0).get(i) + "\t\t");
+			for (int j = 1; j < dataTableau.size(); j++) {
+				ArrayList<Float> list = dataTableau.get(j);
+				if (i < list.size()) {
+					double value = list.get(i);
+					String displayValue = value == 0 ? "-" : "A(" + value + ")";
+					resultTextArea.append(displayValue + "\t\t");
+				} else {
+					resultTextArea.append("\t\t");
+				}
 			}
+			resultTextArea.append("\n");
 		}
 	}
 
@@ -431,7 +466,7 @@ class Dispatcher{
 		}
 	}
 
-	public static void FIFObasic(ArrayList processus_list, Processus[] processus){
+	public static void FIFObasic(ArrayList processusList, Processus[] processus){
 		start = 0;
 		time = 0;
 		while (!allProcessesFinished(processus)){
@@ -455,7 +490,7 @@ class Dispatcher{
 					}
 				}
 			}
-			printState(processus_list, start);
+			printState(processusList, start);
 			if(processToActivate != null){
 				processToActivate.setActif(false);
 			}
@@ -637,7 +672,7 @@ class Dispatcher{
 		}
 	}
 
-	public static void printState(ArrayList processus_list, int start) {
+	public static void printState(ArrayList processusList, int start) {
 		if (start_at_zero) {
 			System.out.println(" 0\t\tF1\t\tF2\t\tF3\t\tF4 ");
 			start_at_zero = false;
@@ -647,7 +682,7 @@ class Dispatcher{
 
 
 		int columnWidth = 10;
-		for (Object obj : processus_list) {
+		for (Object obj : processusList) {
 			if (obj instanceof Processus) {
 				Processus processus = (Processus) obj;
 				String status = processus.getStatus(start);
@@ -655,8 +690,15 @@ class Dispatcher{
 			}
 		}
 		System.out.println();
-	}
 
+		dataTableau.get(0).add((float) start);
+		for (int i = 0; i < processusList.size(); i++) {
+			Processus p = (Processus) processusList.get(i);
+			if (!p.isFinished()) {
+				dataTableau.get(i + 1).add(p.getTotal_time());
+			}
+		}
+	}
 
 	static boolean allProcessesFinished(Processus[] processes) {
 		for (Processus process : processes) {
